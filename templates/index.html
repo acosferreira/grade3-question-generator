@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Grade 3 Question Generator{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <div class="hero">
+        <h1>Welcome to Grade 3 Question Generator! 🎓</h1>
+        <p class="subtitle">Practice math and grammar questions designed for 8-9 year olds</p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">✨</div>
+            <h2>Generate Questions</h2>
+            <p>Create new math and grammar questions using AI or templates</p>
+            <a href="{{ url_for('generate_page') }}" class="btn btn-primary">Start Generating</a>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h2>View Questions</h2>
+            <p>Browse all saved questions in the database</p>
+            <a href="{{ url_for('list_page') }}" class="btn btn-primary">View Questions</a>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📝</div>
+            <h2>Practice Mode</h2>
+            <p>Practice with a set number of random questions</p>
+            <a href="{{ url_for('practice_page') }}" class="btn btn-primary">Start Practice</a>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🏆</div>
+            <h2>Quiz Mode</h2>
+            <p>Test your knowledge! Answer correctly to continue</p>
+            <a href="{{ url_for('quiz_page') }}" class="btn btn-primary">Start Quiz</a>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h3>About</h3>
+        <p>This tool helps grade 3 students practice essential math and English grammar skills. Questions cover:</p>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Math:</strong>
+                <ul>
+                    <li>Addition & Subtraction</li>
+                    <li>Multiplication & Division</li>
+                    <li>Word Problems</li>
+                    <li>Time & Money</li>
+                </ul>
+            </div>
+            <div class="info-item">
+                <strong>Grammar:</strong>
+                <ul>
+                    <li>Parts of Speech</li>
+                    <li>Punctuation</li>
+                    <li>Plurals</li>
+                    <li>Verb Tenses</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

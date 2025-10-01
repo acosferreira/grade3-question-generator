@@ -345,6 +345,58 @@ Your answer (1-4): 3
 ✓ Correct! The answer is: 12
 ```
 
+## Web UI
+
+The project includes a modern web interface built with Flask. The UI provides an easy-to-use interface for all features:
+
+### Starting the Web UI
+
+```bash
+# Install Flask (if not already installed)
+pip install -r requirements.txt
+
+# Start the web server
+python app.py
+```
+
+The web interface will be available at `http://localhost:5001`
+
+**Note:** Port 5001 is used instead of 5000 to avoid conflicts with macOS AirPlay Receiver.
+
+### Web UI Features
+
+The web interface includes:
+
+1. **Home Page** - Overview of all features and navigation
+2. **Generate Questions** - Interactive form to generate math or grammar questions
+3. **Question Library** - Browse and filter all saved questions with statistics
+4. **Practice Mode** - Web-based practice sessions with progress tracking and scoring
+5. **Quiz Mode** - Interactive quiz with streak tracking and multiple choice support
+
+### Web UI Screenshots
+
+- **Responsive Design** - Works on desktop, tablet, and mobile devices
+- **Real-time Feedback** - Instant validation and feedback on answers
+- **Progress Tracking** - Visual progress bars and streak counters
+- **Statistics Dashboard** - View your question database statistics
+
+### CLI vs Web UI
+
+You can use either the command-line interface (CLI) or the web interface (UI):
+
+- **CLI**: Best for quick tasks, automation, and terminal-based workflows
+  ```bash
+  python main.py generate math --count 5
+  python main.py quiz --subject math
+  ```
+
+- **Web UI**: Best for interactive learning, visual feedback, and easier navigation
+  - Open `http://localhost:5001` in your browser
+  - Click through the navigation to access features
+  - No command-line knowledge required
+
+Both interfaces use the same database, so questions generated in the CLI are available in the web UI and vice versa.
+
 ## License
 
 MIT

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Practice Mode - Grade 3 Quiz{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Practice Mode 📝</h1>
+    <p>Practice with a set number of questions and see your score</p>
+</div>
+
+<div class="practice-container">
+    <!-- Setup Form -->
+    <div id="setupForm" class="form-card">
+        <div class="form-group">
+            <label for="subject">Subject:</label>
+            <select id="subject">
+                <option value="all">All Subjects</option>
+                <option value="math">Math</option>
+                <option value="grammar">Grammar</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="count">Number of Questions:</label>
+            <input type="number" id="count" min="1" max="20" value="5">
+        </div>
+
+        <button onclick="startPractice()" class="btn btn-primary btn-large">Start Practice</button>
+    </div>
+
+    <!-- Practice Session -->
+    <div id="practiceSession" style="display: none;">
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div class="progress-text">
+            Question <span id="currentQuestion">1</span> of <span id="totalQuestions">5</span>
+        </div>
+
+        <div class="question-card">
+            <div class="question-header">
+                <span id="questionSubject" class="question-subject"></span>
+            </div>
+            <div class="question-content">
+                <p id="questionText" class="question-text-large"></p>
+            </div>
+            <div class="answer-input">
+                <input type="text" id="answerInput" placeholder="Type your answer here..." autocomplete="off">
+                <button onclick="checkAnswer()" class="btn btn-primary">Submit Answer</button>
+            </div>
+        </div>
+
+        <div id="feedback" class="feedback" style="display: none;"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" style="display: none;">
+        <div class="results-card">
+            <h2>Practice Complete! 🎉</h2>
+            <div class="score-display">
+                <div class="score-circle">
+                    <span id="scorePercent" class="score-number">0%</span>
+                </div>
+                <p class="score-text">
+                    You got <strong><span id="correctCount">0</span> out of <span id="totalCount">0</span></strong> correct!
+                </p>
+            </div>
+            <div id="scoreMessage" class="score-message"></div>
+            <div class="results-actions">
+                <button onclick="location.reload()" class="btn btn-primary">Practice Again</button>
+                <a href="{{ url_for('quiz_page') }}" class="btn btn-secondary">Try Quiz Mode</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="error" class="error-message" style="display: none;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let questions = [];
+let currentQuestionIndex = 0;
+let correctAnswers = 0;
+
+async function startPractice() {
+    const subject = document.getElementById('subject').value;
+    const count = document.getElementById('count').value;
+
+    try {
+        const response = await fetch('/api/practice/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject, count })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            questions = data.questions;
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+
+            document.getElementById('setupForm').style.display = 'none';
+            document.getElementById('practiceSession').style.display = 'block';
+            document.getElementById('totalQuestions').textContent = questions.length;
+
+            showQuestion();
+        } else {
+            showError(data.error || 'Failed to start practice session');
+        }
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
+function showQuestion() {
+    const question = questions[currentQuestionIndex];
+
+    document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+    document.getElementById('questionSubject').textContent = question.subject;
+    document.getElementById('questionSubject').className = `question-subject ${question.subject}`;
+    document.getElementById('questionText').textContent = question.question;
+    document.getElementById('answerInput').value = '';
+    document.getElementById('feedback').style.display = 'none';
+    document.getElementById('answerInput').focus();
+
+    // Update progress bar
+    const progress = ((currentQuestionIndex) / questions.length) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+}
+
+function checkAnswer() {
+    const userAnswer = document.getElementById('answerInput').value.trim();
+    const question = questions[currentQuestionIndex];
+    const feedback = document.getElementById('feedback');
+
+    if (!userAnswer) {
+        alert('Please enter an answer');
+        return;
+    }
+
+    const isCorrect = userAnswer.toLowerCase() === question.answer.toLowerCase();
+
+    if (isCorrect) {
+        correctAnswers++;
+        feedback.className = 'feedback feedback-correct';
+        feedback.innerHTML = '✓ Correct!';
+    } else {
+        feedback.className = 'feedback feedback-incorrect';
+        feedback.innerHTML = `✗ Incorrect. The correct answer is: <strong>${question.answer}</strong>`;
+    }
+
+    feedback.style.display = 'block';
+
+    // Move to next question or show results
+    setTimeout(() => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }, 2000);
+}
+
+function showResults() {
+    const percent = Math.round((correctAnswers / questions.length) * 100);
+
+    document.getElementById('practiceSession').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('correctCount').textContent = correctAnswers;
+    document.getElementById('totalCount').textContent = questions.length;
+    document.getElementById('scorePercent').textContent = percent + '%';
+
+    // Update progress bar to 100%
+    document.getElementById('progressFill').style.width = '100%';
+
+    // Show message based on score
+    const messageEl = document.getElementById('scoreMessage');
+    if (percent === 100) {
+        messageEl.textContent = 'Perfect score! Outstanding work! 🌟';
+        messageEl.className = 'score-message excellent';
+    } else if (percent >= 80) {
+        messageEl.textContent = 'Great job! Keep up the good work! 👏';
+        messageEl.className = 'score-message good';
+    } else if (percent >= 60) {
+        messageEl.textContent = 'Good effort! Practice more to improve! 💪';
+        messageEl.className = 'score-message okay';
+    } else {
+        messageEl.textContent = 'Keep practicing! You\'ll get better! 📚';
+        messageEl.className = 'score-message needs-work';
+    }
+}
+
+function showError(message) {
+    const error = document.getElementById('error');
+    error.textContent = 'Error: ' + message;
+    error.style.display = 'block';
+}
+
+// Allow Enter key to submit answer
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('answerInput');
+    if (input) {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
