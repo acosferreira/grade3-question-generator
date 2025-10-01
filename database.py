@@ -29,6 +29,20 @@ class QuestionDatabase:
         conn.commit()
         conn.close()
 
+    def question_exists(self, question: str) -> bool:
+        """Check if a question already exists in the database."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT COUNT(*) FROM questions
+            WHERE LOWER(TRIM(question)) = LOWER(TRIM(?))
+        """, (question,))
+
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0
+
     def add_question(self, subject: str, question: str, answer: str, difficulty: int = 3):
         """Add a new question to the database."""
         conn = sqlite3.connect(self.db_path)

@@ -4,12 +4,15 @@ Flask Web UI for Grade 3 Question Generator
 """
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask_cors import CORS
 from database import QuestionDatabase
 from generator import QuestionGenerator
 import random
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'grade3-quiz-secret-key'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'grade3-quiz-secret-key')
+CORS(app)
 
 # Default configuration
 DB_PATH = "questions.db"
@@ -239,4 +242,6 @@ def _generate_multiple_choice_options(correct_answer: str, subject: str) -> list
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Railway provides PORT via environment variable
+    port = int(os.environ.get('PORT', 5001))
+    app.run(debug=True, host='0.0.0.0', port=port)

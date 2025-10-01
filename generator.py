@@ -12,12 +12,28 @@ class QuestionGenerator:
 
     def generate_math_question(self) -> Dict[str, str]:
         """Generate a grade 3 math question."""
-        prompt = """Generate ONE simple grade 3 math question. Include both the question and answer.
+        import random
+
+        # Add variety by suggesting different topics
+        topics = [
+            "addition or subtraction",
+            "multiplication (up to 10x10) or simple division",
+            "word problems about money or shopping",
+            "word problems about time or daily activities",
+            "word problems about counting objects or sharing items"
+        ]
+        selected_topic = random.choice(topics)
+
+        # Add randomization to force variation in LLM output
+        seed = random.randint(1000, 9999)
+
+        prompt = f"""Generate ONE unique grade 3 math question about {selected_topic}. Include both the question and answer.
 Format your response EXACTLY as:
 QUESTION: [the question]
 ANSWER: [the answer]
 
-Topics: addition, subtraction, multiplication (up to 10x10), division (simple), word problems, time, money.
+IMPORTANT: Make this question completely different from previous questions. Use different numbers, contexts, and scenarios.
+Random seed for variation: {seed}
 Keep it appropriate for 8-9 year olds."""
 
         response = self._call_llama(prompt)
@@ -25,25 +41,57 @@ Keep it appropriate for 8-9 year olds."""
 
     def generate_grammar_question(self) -> Dict[str, str]:
         """Generate a grade 3 English grammar question."""
-        prompt = """Generate ONE simple grade 3 English grammar question. Include both the question and answer.
+        import random
+        import time
+
+        # Add variety by suggesting different topics
+        topics = [
+            "identifying parts of speech (nouns, verbs, adjectives, or adverbs)",
+            "punctuation and capitalization",
+            "plurals and irregular plurals",
+            "verb tenses (past, present, future)",
+            "sentence structure and simple/compound sentences"
+        ]
+        selected_topic = random.choice(topics)
+
+        # Add randomization to force variation in LLM output
+        seed = random.randint(1000, 9999)
+
+        prompt = f"""Generate ONE unique grade 3 English grammar question about {selected_topic}. Include both the question and answer.
 Format your response EXACTLY as:
 QUESTION: [the question]
 ANSWER: [the answer]
 
-Topics: parts of speech (nouns, verbs, adjectives), punctuation, capitalization, simple sentences, plurals, verb tenses.
+IMPORTANT: Make this question completely different from previous questions. Use different words, examples, and scenarios.
+Random seed for variation: {seed}
 Keep it appropriate for 8-9 year olds."""
 
         response = self._call_llama(prompt)
         return self._parse_response(response, "grammar")
 
     def generate_batch(self, subject: str, count: int = 5) -> List[Dict[str, str]]:
-        """Generate multiple questions at once."""
+        """Generate multiple questions at once, avoiding duplicates."""
         questions = []
-        for _ in range(count):
+        seen_questions = set()
+        max_attempts = count * 3  # Allow up to 3x attempts to get unique questions
+        attempts = 0
+
+        while len(questions) < count and attempts < max_attempts:
+            attempts += 1
+
             if subject == "math":
-                questions.append(self.generate_math_question())
+                q = self.generate_math_question()
             elif subject == "grammar":
-                questions.append(self.generate_grammar_question())
+                q = self.generate_grammar_question()
+            else:
+                continue
+
+            # Check if question is unique (case-insensitive)
+            question_key = q["question"].lower().strip()
+            if question_key not in seen_questions:
+                seen_questions.add(question_key)
+                questions.append(q)
+
         return questions
 
     def _call_llama(self, prompt: str) -> str:
@@ -65,7 +113,7 @@ Keep it appropriate for 8-9 year olds."""
                         "content": prompt
                     }
                 ],
-                "temperature": 0.7,
+                "temperature": 0.9,
                 "max_tokens": 200,
                 "stream": False
             }
@@ -122,15 +170,102 @@ Keep it appropriate for 8-9 year olds."""
             return f"QUESTION: {question}\nANSWER: {answer}"
 
         else:
-            # Simple grammar question templates
-            templates = [
-                ("What is the plural of 'child'?", "children"),
-                ("What is the plural of 'mouse'?", "mice"),
-                ("Is 'run' a noun or a verb?", "verb"),
-                ("Is 'happy' a noun or an adjective?", "adjective"),
-                ("Which word is a noun: 'quickly', 'table', 'run'?", "table"),
+            # Expanded grammar question templates with variety
+
+            # Plural questions
+            plural_words = [
+                ("child", "children"), ("mouse", "mice"), ("foot", "feet"),
+                ("tooth", "teeth"), ("goose", "geese"), ("man", "men"),
+                ("woman", "women"), ("person", "people"), ("ox", "oxen"),
+                ("cat", "cats"), ("dog", "dogs"), ("book", "books"),
+                ("box", "boxes"), ("class", "classes"), ("baby", "babies")
             ]
-            question, answer = random.choice(templates)
+
+            # Parts of speech - nouns
+            noun_words = ["table", "chair", "book", "cat", "dog", "car", "house", "tree", "apple", "school"]
+
+            # Parts of speech - verbs
+            verb_words = ["run", "jump", "swim", "eat", "sleep", "write", "read", "play", "dance", "sing"]
+
+            # Parts of speech - adjectives
+            adjective_words = ["happy", "sad", "big", "small", "fast", "slow", "beautiful", "ugly", "hot", "cold"]
+
+            # Parts of speech - adverbs
+            adverb_words = ["quickly", "slowly", "carefully", "loudly", "quietly", "happily", "sadly", "badly", "well"]
+
+            # Verb tenses
+            verb_tenses = [
+                ("run", "ran", "running"), ("jump", "jumped", "jumping"),
+                ("eat", "ate", "eating"), ("go", "went", "going"),
+                ("see", "saw", "seeing"), ("make", "made", "making"),
+                ("take", "took", "taking"), ("write", "wrote", "writing")
+            ]
+
+            # Select a random question type
+            question_type = random.choice([
+                "plural", "noun_identification", "verb_identification",
+                "adjective_identification", "adverb_identification",
+                "past_tense", "word_type_choice", "capitalization", "punctuation"
+            ])
+
+            if question_type == "plural":
+                word, plural = random.choice(plural_words)
+                question = f"What is the plural of '{word}'?"
+                answer = plural
+
+            elif question_type == "noun_identification":
+                word = random.choice(noun_words)
+                question = f"Is '{word}' a noun or a verb?"
+                answer = "noun"
+
+            elif question_type == "verb_identification":
+                word = random.choice(verb_words)
+                question = f"Is '{word}' a noun or a verb?"
+                answer = "verb"
+
+            elif question_type == "adjective_identification":
+                word = random.choice(adjective_words)
+                question = f"Is '{word}' a noun or an adjective?"
+                answer = "adjective"
+
+            elif question_type == "adverb_identification":
+                word = random.choice(adverb_words)
+                question = f"Is '{word}' an adjective or an adverb?"
+                answer = "adverb"
+
+            elif question_type == "past_tense":
+                present, past, _ = random.choice(verb_tenses)
+                question = f"What is the past tense of '{present}'?"
+                answer = past
+
+            elif question_type == "word_type_choice":
+                noun = random.choice(noun_words)
+                verb = random.choice(verb_words)
+                adverb = random.choice(adverb_words)
+                options = [noun, verb, adverb]
+                random.shuffle(options)
+                question = f"Which word is a noun: '{options[0]}', '{options[1]}', '{options[2]}'?"
+                answer = noun
+
+            elif question_type == "capitalization":
+                names = ["john", "mary", "bob", "alice", "david", "sarah"]
+                places = ["paris", "london", "tokyo", "boston", "chicago"]
+                word_choice = random.choice([
+                    (random.choice(names), "name"),
+                    (random.choice(places), "place")
+                ])
+                question = f"Should '{word_choice[0]}' be capitalized in a sentence?"
+                answer = "yes"
+
+            else:  # punctuation
+                punctuation_rules = [
+                    ("What punctuation mark goes at the end of a question?", "question mark"),
+                    ("What punctuation mark goes at the end of a statement?", "period"),
+                    ("What punctuation mark shows excitement?", "exclamation point"),
+                    ("What do we use to separate items in a list?", "comma")
+                ]
+                question, answer = random.choice(punctuation_rules)
+
             return f"QUESTION: {question}\nANSWER: {answer}"
 
     def _parse_response(self, response: str, subject: str) -> Dict[str, str]:

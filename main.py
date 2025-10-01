@@ -23,17 +23,29 @@ def generate_questions(args):
     try:
         questions = generator.generate_batch(subject, count)
 
+        saved_count = 0
+        duplicate_count = 0
+
         for q in questions:
+            # Check if question already exists in database
+            if db.question_exists(q["question"]):
+                duplicate_count += 1
+                print(f"\n⚠ Skipping duplicate question: {q['question'][:50]}...")
+                continue
+
             question_id = db.add_question(
                 subject=q["subject"],
                 question=q["question"],
                 answer=q["answer"]
             )
+            saved_count += 1
             print(f"\n[Question #{question_id}]")
             print(f"Q: {q['question']}")
             print(f"A: {q['answer']}")
 
-        print(f"\n✓ Successfully generated and saved {len(questions)} question(s)!")
+        print(f"\n✓ Successfully saved {saved_count} question(s)!")
+        if duplicate_count > 0:
+            print(f"⚠ Skipped {duplicate_count} duplicate question(s).")
 
     except Exception as e:
         print(f"Error generating questions: {e}", file=sys.stderr)
