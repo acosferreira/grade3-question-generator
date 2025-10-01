@@ -4,12 +4,15 @@ Flask Web UI for Grade 3 Question Generator
 """
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask_cors import CORS
 from database import QuestionDatabase
 from generator import QuestionGenerator
 import random
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'grade3-quiz-secret-key'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'grade3-quiz-secret-key')
+CORS(app)
 
 # Default configuration
 DB_PATH = "questions.db"

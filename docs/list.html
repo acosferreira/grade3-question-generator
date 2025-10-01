@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Questions - Grade 3 Quiz</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-logo">📚 Grade 3 Quiz</h1>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="generate.html" class="nav-link">Generate</a></li>
+                <li><a href="list.html" class="nav-link">List</a></li>
+                <li><a href="practice.html" class="nav-link">Practice</a></li>
+                <li><a href="quiz.html" class="nav-link">Quiz</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Question Library 📋</h1>
+            <p>Browse all saved questions in the database</p>
+        </div>
+
+        <div class="list-container">
+            <div class="filter-card">
+                <div class="form-group">
+                    <label for="filterSubject">Filter by Subject:</label>
+                    <select id="filterSubject" onchange="loadQuestions()">
+                        <option value="all">All Subjects</option>
+                        <option value="math">Math</option>
+                        <option value="grammar">Grammar</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filterLimit">Show:</label>
+                    <select id="filterLimit" onchange="loadQuestions()">
+                        <option value="10">10 questions</option>
+                        <option value="20">20 questions</option>
+                        <option value="50" selected>50 questions</option>
+                        <option value="100">100 questions</option>
+                    </select>
+                </div>
+
+                <button onclick="loadQuestions()" class="btn btn-secondary">Refresh</button>
+            </div>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading questions...</p>
+            </div>
+
+            <div id="stats" class="stats-card" style="display: none;"></div>
+
+            <div id="questionsList" class="questions-list"></div>
+
+            <div id="empty" class="empty-state" style="display: none;">
+                <h3>No Questions Found</h3>
+                <p>There are no questions in the database yet.</p>
+                <a href="generate.html" class="btn btn-primary">Generate Some Questions</a>
+            </div>
+
+            <div id="error" class="error-message" style="display: none;"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Grade 3 Question Generator | Powered by LLM</p>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script>
+async function loadQuestions() {
+    const loading = document.getElementById('loading');
+    const questionsList = document.getElementById('questionsList');
+    const stats = document.getElementById('stats');
+    const empty = document.getElementById('empty');
+    const error = document.getElementById('error');
+
+    const subject = document.getElementById('filterSubject').value;
+    const limit = document.getElementById('filterLimit').value;
+
+    // Show loading
+    loading.style.display = 'block';
+    questionsList.innerHTML = '';
+    stats.style.display = 'none';
+    empty.style.display = 'none';
+    error.style.display = 'none';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/questions?subject=${subject}&limit=${limit}`);
+        const data = await response.json();
+
+        loading.style.display = 'none';
+
+        if (data.success && data.questions.length > 0) {
+            // Show stats
+            const mathCount = data.questions.filter(q => q.subject === 'math').length;
+            const grammarCount = data.questions.filter(q => q.subject === 'grammar').length;
+
+            stats.innerHTML = `
+                <h3>Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">${data.count}</div>
+                        <div class="stat-label">Total Questions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${mathCount}</div>
+                        <div class="stat-label">Math</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${grammarCount}</div>
+                        <div class="stat-label">Grammar</div>
+                    </div>
+                </div>
+            `;
+            stats.style.display = 'block';
+
+            // Display questions
+            questionsList.innerHTML = data.questions.map((q, index) => `
+                <div class="question-item">
+                    <div class="question-header">
+                        <span class="question-number">ID: ${q.id}</span>
+                        <span class="question-subject ${q.subject}">${q.subject}</span>
+                    </div>
+                    <div class="question-content">
+                        <p class="question-text"><strong>Q:</strong> ${q.question}</p>
+                        <p class="answer-text"><strong>A:</strong> ${q.answer}</p>
+                        <p class="question-meta">Created: ${new Date(q.created_at).toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            empty.style.display = 'block';
+        }
+    } catch (err) {
+        loading.style.display = 'none';
+        error.textContent = 'Error: ' + err.message;
+        error.style.display = 'block';
+    }
+}
+
+// Load questions on page load
+window.addEventListener('DOMContentLoaded', loadQuestions);
+    </script>
+</body>
+</html>

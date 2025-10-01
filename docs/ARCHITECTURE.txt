@@ -1,0 +1,236 @@
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    GRADE 3 QUESTION GENERATOR                           │
+│                     Deployment Architecture                             │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────┐                              ┌─────────────────────┐
+│                      │                              │                     │
+│   Student/Teacher    │                              │   Student/Teacher   │
+│     (Browser)        │                              │      (Browser)      │
+│                      │                              │                     │
+└──────────┬───────────┘                              └──────────┬──────────┘
+           │                                                     │
+           │ 1. Visit URL                                        │
+           │ https://username.github.io/                         │
+           │ grade3-question-generator/                          │
+           ▼                                                     │
+┌─────────────────────────────────────────────────────────────┐│
+│                                                              ││
+│              GITHUB PAGES (Frontend - FREE)                  ││
+│                                                              ││
+│  ┌────────────────────────────────────────────────────────┐ ││
+│  │  Static HTML Files (docs/ folder)                      │ ││
+│  │                                                         │ ││
+│  │  • index.html       - Home page                        │ ││
+│  │  • generate.html    - Generate questions               │ ││
+│  │  • list.html        - View questions                   │ ││
+│  │  • practice.html    - Practice mode                    │ ││
+│  │  • quiz.html        - Quiz mode                        │ ││
+│  │                                                         │ ││
+│  │  CSS: style.css                                        │ ││
+│  │  JS:  config.js (contains Railway API URL)            │ ││
+│  └────────────────────────────────────────────────────────┘ ││
+│                                                              ││
+└──────────────────────────┬───────────────────────────────────┘│
+                           │                                    │
+                           │ 2. User clicks "Generate"          │
+                           │ JavaScript makes API call          │
+                           │                                    │
+                           │ POST /api/generate                 │
+                           ▼ { subject: "math", count: 5 }     │
+              ┌─────────────────────────────────┐               │
+              │                                 │               │
+              │  RAILWAY (Backend API - FREE)   │               │
+              │                                 │               │
+              │  ┌───────────────────────────┐  │               │
+              │  │  Flask App (app.py)       │  │               │
+              │  │                           │  │               │
+              │  │  • CORS enabled           │  │               │
+              │  │  • REST API endpoints     │  │               │
+              │  │  • Gunicorn server        │  │               │
+              │  └────────┬──────────────────┘  │               │
+              │           │                     │               │
+              │           ▼                     │               │
+              │  ┌───────────────────────────┐  │               │
+              │  │  Question Generator       │  │               │
+              │  │  (generator.py)           │  │               │
+              │  │                           │  │               │
+              │  │  • Math questions         │  │               │
+              │  │  • Grammar questions      │  │               │
+              │  │  • Template fallback      │  │               │
+              │  └────────┬──────────────────┘  │               │
+              │           │                     │               │
+              │           ▼                     │               │
+              │  ┌───────────────────────────┐  │               │
+              │  │  Database (database.py)   │  │               │
+              │  │                           │  │               │
+              │  │  SQLite (questions.db)    │  │               │
+              │  │  • Store questions        │  │               │
+              │  │  • Retrieve for practice  │  │               │
+              │  └───────────────────────────┘  │               │
+              │                                 │               │
+              │  URL: https://xyz.up.railway.app│               │
+              └─────────────┬───────────────────┘               │
+                           │                                    │
+                           │ 3. Return JSON response            │
+                           │ { success: true, questions: [...] }│
+                           ▼                                    │
+┌─────────────────────────────────────────────────────────────┐ │
+│              GITHUB PAGES (Frontend)                         │ │
+│                                                              │ │
+│  JavaScript receives response                                │ │
+│  Updates HTML to display questions                           │ │
+│                                                              │ │
+└──────────────────────────┬───────────────────────────────────┘ │
+                           │                                     │
+                           │ 4. User sees questions              │
+                           │                                     │
+                           ▼                                     │
+┌──────────────────────┐                                        │
+│                      │◄───────────────────────────────────────┘
+│   Student/Teacher    │
+│     (Browser)        │
+│                      │
+└──────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+API ENDPOINTS
+─────────────
+
+Frontend (GitHub Pages) calls these Railway endpoints:
+
+┌─────────────────────────┬───────────────────────────────────────────────┐
+│ Endpoint                │ Purpose                                       │
+├─────────────────────────┼───────────────────────────────────────────────┤
+│ POST /api/generate      │ Generate new questions                        │
+│ GET  /api/questions     │ List saved questions                          │
+│ POST /api/practice/start│ Start practice session                        │
+│ POST /api/quiz/question │ Get next quiz question                        │
+│ POST /api/quiz/check    │ Check quiz answer                             │
+└─────────────────────────┴───────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+DATA FLOW EXAMPLE: Generate Questions
+──────────────────────────────────────
+
+1. USER ACTION
+   ↓
+   User visits: https://username.github.io/grade3-question-generator/
+   Clicks "Generate Questions"
+   Selects "Math" and "5 questions"
+   Clicks "Generate"
+
+2. FRONTEND (JavaScript)
+   ↓
+   fetch(`${API_BASE_URL}/api/generate`, {
+     method: 'POST',
+     body: JSON.stringify({ subject: 'math', count: 5 })
+   })
+
+3. RAILWAY BACKEND
+   ↓
+   Flask receives request
+   → generator.generate_batch('math', 5)
+   → Creates 5 math questions
+   → database.add_question() × 5
+   → Saves to SQLite
+   → Returns JSON: { success: true, questions: [...] }
+
+4. FRONTEND (JavaScript)
+   ↓
+   Receives response
+   → Displays questions in HTML
+   → Shows success message
+
+5. USER SEES
+   ↓
+   5 math questions displayed on screen
+   Can now practice with them
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+DEPLOYMENT WORKFLOW
+───────────────────
+
+┌─────────────────┐
+│  Your Computer  │
+│                 │
+│  • Edit code    │
+│  • git commit   │
+│  • git push     │
+└────────┬────────┘
+         │
+         ├─────────────────────┬──────────────────────┐
+         │                     │                      │
+         ▼                     ▼                      ▼
+┌─────────────────┐   ┌─────────────────┐   ┌────────────────┐
+│     GitHub      │   │    Railway      │   │ GitHub Pages   │
+│   Repository    │   │                 │   │                │
+│                 │   │ Auto-detects    │   │ Auto-deploys   │
+│ Stores code     │───▶ Python changes  │   │ docs/ folder   │
+│                 │   │                 │   │                │
+│                 │   │ Rebuilds &      │   │ Publishes      │
+│                 │   │ Redeploys       │   │ static site    │
+│                 │   │                 │   │                │
+│                 │   │ Backend Live    │   │ Frontend Live  │
+└─────────────────┘   └─────────────────┘   └────────────────┘
+                              ▲                      ▲
+                              │                      │
+                              └──────────┬───────────┘
+                                         │
+                              Both deployed in < 2 minutes
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+FILES OVERVIEW
+──────────────
+
+Backend Files (Railway):
+  • app.py           - Flask API server
+  • generator.py     - Question generation logic
+  • database.py      - SQLite database operations
+  • main.py          - CLI interface (not used in deployment)
+  • Procfile         - Railway start command
+  • railway.json     - Railway configuration
+  • runtime.txt      - Python version
+  • requirements.txt - Python dependencies
+
+Frontend Files (GitHub Pages):
+  docs/
+  • index.html       - Home page
+  • generate.html    - Generate questions
+  • list.html        - View questions
+  • practice.html    - Practice mode
+  • quiz.html        - Quiz mode
+  • css/style.css    - Styles
+  • js/config.js     - API URL configuration
+
+Documentation:
+  • DEPLOYMENT.md           - Full deployment guide
+  • QUICK_START.md          - 10-minute quick start
+  • CHANGES.md              - What changed for deployment
+  • .github/DEPLOYMENT_CHECKLIST.md - Deployment checklist
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+COSTS
+──────
+
+GitHub Pages:  FREE (unlimited for public repos)
+Railway:       FREE (500 hours/month ≈ 16 hours/day)
+
+Total:         $0/month for typical usage
+
+Upgrade if needed:
+  Railway Pro: $5/month (includes persistent storage)
+
+
+═══════════════════════════════════════════════════════════════════════════

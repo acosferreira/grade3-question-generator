@@ -397,6 +397,19 @@ You can use either the command-line interface (CLI) or the web interface (UI):
 
 Both interfaces use the same database, so questions generated in the CLI are available in the web UI and vice versa.
 
+## Deployment
+
+You can deploy this app for free online:
+
+- **Backend:** Railway (free tier - 500 hours/month)
+- **Frontend:** GitHub Pages (free forever)
+
+See the deployment guides:
+- [QUICK_START.md](QUICK_START.md) - Deploy in 10 minutes
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Detailed deployment guide
+
+Once deployed, anyone can access your app via a URL (e.g., `https://your-username.github.io/grade3-question-generator/`) - no installation required!
+
 ## License
 
 MIT

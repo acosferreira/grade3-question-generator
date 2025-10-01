@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Mode - Grade 3 Quiz</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-logo">📚 Grade 3 Quiz</h1>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="generate.html" class="nav-link">Generate</a></li>
+                <li><a href="list.html" class="nav-link">List</a></li>
+                <li><a href="practice.html" class="nav-link">Practice</a></li>
+                <li><a href="quiz.html" class="nav-link">Quiz</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Quiz Mode 🏆</h1>
+            <p>Answer correctly to keep your streak going! One wrong answer and it's game over!</p>
+        </div>
+
+        <div class="quiz-container">
+            <!-- Setup Form -->
+            <div id="setupForm" class="form-card">
+                <div class="form-group">
+                    <label for="subject">Subject:</label>
+                    <select id="subject">
+                        <option value="all">All Subjects</option>
+                        <option value="math">Math</option>
+                        <option value="grammar">Grammar</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="multipleChoice">
+                        Multiple Choice Mode (4 options)
+                    </label>
+                </div>
+
+                <button onclick="startQuiz()" class="btn btn-primary btn-large">Start Quiz</button>
+            </div>
+
+            <!-- Quiz Session -->
+            <div id="quizSession" style="display: none;">
+                <div class="streak-display">
+                    <div class="streak-label">Current Streak</div>
+                    <div id="streakCount" class="streak-count">0</div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-header">
+                        <span id="questionSubject" class="question-subject"></span>
+                    </div>
+                    <div class="question-content">
+                        <p id="questionText" class="question-text-large"></p>
+                    </div>
+
+                    <!-- Text Input Mode -->
+                    <div id="textMode" class="answer-input">
+                        <input type="text" id="answerInput" placeholder="Type your answer here..." autocomplete="off">
+                        <button onclick="submitAnswer()" class="btn btn-primary">Submit Answer</button>
+                    </div>
+
+                    <!-- Multiple Choice Mode -->
+                    <div id="multipleChoiceMode" style="display: none;">
+                        <div id="optionsList" class="options-list"></div>
+                    </div>
+                </div>
+
+                <div id="feedback" class="feedback" style="display: none;"></div>
+
+                <div class="quiz-actions">
+                    <button onclick="quitQuiz()" class="btn btn-secondary">Quit Quiz</button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="results" style="display: none;">
+                <div class="results-card">
+                    <h2 id="resultsTitle">Quiz Complete! 🎯</h2>
+                    <div class="score-display">
+                        <div class="streak-badge">
+                            <div class="streak-label">Final Streak</div>
+                            <div id="finalStreak" class="streak-count">0</div>
+                        </div>
+                        <p class="score-text">
+                            Total questions answered: <strong><span id="totalAnswered">0</span></strong>
+                        </p>
+                    </div>
+                    <div id="resultsMessage" class="score-message"></div>
+                    <div class="results-actions">
+                        <button onclick="location.reload()" class="btn btn-primary">Try Again</button>
+                        <a href="practice.html" class="btn btn-secondary">Practice Mode</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error" class="error-message" style="display: none;"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Grade 3 Question Generator | Powered by LLM</p>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script>
+let currentQuestion = null;
+let streak = 0;
+let totalAnswered = 0;
+let multipleChoiceMode = false;
+
+async function startQuiz() {
+    multipleChoiceMode = document.getElementById('multipleChoice').checked;
+    streak = 0;
+    totalAnswered = 0;
+
+    document.getElementById('setupForm').style.display = 'none';
+    document.getElementById('quizSession').style.display = 'block';
+    document.getElementById('streakCount').textContent = '0';
+
+    // Show appropriate input mode
+    if (multipleChoiceMode) {
+        document.getElementById('textMode').style.display = 'none';
+        document.getElementById('multipleChoiceMode').style.display = 'block';
+    } else {
+        document.getElementById('textMode').style.display = 'block';
+        document.getElementById('multipleChoiceMode').style.display = 'none';
+    }
+
+    await loadNextQuestion();
+}
+
+async function loadNextQuestion() {
+    const subject = document.getElementById('subject').value;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/quiz/question`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subject,
+                multiple_choice: multipleChoiceMode
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentQuestion = data.question;
+
+            document.getElementById('questionSubject').textContent = currentQuestion.subject;
+            document.getElementById('questionSubject').className = `question-subject ${currentQuestion.subject}`;
+            document.getElementById('questionText').textContent = currentQuestion.question;
+            document.getElementById('feedback').style.display = 'none';
+
+            if (multipleChoiceMode) {
+                // Display multiple choice options
+                const optionsList = document.getElementById('optionsList');
+                optionsList.innerHTML = data.options.map((option, index) => `
+                    <button class="option-btn" onclick="selectOption('${option.replace(/'/g, "\\'")}', ${data.correct_index === index})">
+                        ${index + 1}. ${option}
+                    </button>
+                `).join('');
+            } else {
+                document.getElementById('answerInput').value = '';
+                document.getElementById('answerInput').focus();
+            }
+        } else {
+            showError(data.error || 'Failed to load question');
+        }
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
+function submitAnswer() {
+    const userAnswer = document.getElementById('answerInput').value.trim();
+
+    if (!userAnswer) {
+        alert('Please enter an answer');
+        return;
+    }
+
+    checkAnswer(userAnswer, currentQuestion.answer);
+}
+
+function selectOption(option, isCorrect) {
+    checkAnswer(option, currentQuestion.answer, isCorrect);
+}
+
+function checkAnswer(userAnswer, correctAnswer, isCorrectPreCheck = null) {
+    const feedback = document.getElementById('feedback');
+
+    const isCorrect = isCorrectPreCheck !== null ?
+        isCorrectPreCheck :
+        userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+
+    totalAnswered++;
+
+    if (isCorrect) {
+        streak++;
+        document.getElementById('streakCount').textContent = streak;
+        feedback.className = 'feedback feedback-correct';
+        feedback.innerHTML = '✓ Correct! Keep going!';
+        feedback.style.display = 'block';
+
+        // Load next question after short delay
+        setTimeout(() => {
+            loadNextQuestion();
+        }, 1500);
+    } else {
+        // Game over
+        feedback.className = 'feedback feedback-incorrect';
+        feedback.innerHTML = `✗ Incorrect! The correct answer is: <strong>${correctAnswer}</strong>`;
+        feedback.style.display = 'block';
+
+        setTimeout(() => {
+            showResults(false);
+        }, 2000);
+    }
+}
+
+function quitQuiz() {
+    if (confirm('Are you sure you want to quit the quiz?')) {
+        showResults(true);
+    }
+}
+
+function showResults(wasQuit) {
+    document.getElementById('quizSession').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('finalStreak').textContent = streak;
+    document.getElementById('totalAnswered').textContent = totalAnswered;
+
+    const resultsTitle = document.getElementById('resultsTitle');
+    const resultsMessage = document.getElementById('resultsMessage');
+
+    if (wasQuit) {
+        resultsTitle.textContent = 'Quiz Quit 👋';
+        resultsMessage.textContent = 'You quit the quiz. Try again to beat your streak!';
+        resultsMessage.className = 'score-message';
+    } else {
+        resultsTitle.textContent = 'Quiz Complete! 🎯';
+
+        if (streak === 0) {
+            resultsMessage.textContent = 'Better luck next time! Keep practicing! 📚';
+            resultsMessage.className = 'score-message needs-work';
+        } else if (streak < 5) {
+            resultsMessage.textContent = 'Good start! Keep practicing to improve your streak! 💪';
+            resultsMessage.className = 'score-message okay';
+        } else if (streak < 10) {
+            resultsMessage.textContent = 'Great job! You\'re doing well! 👏';
+            resultsMessage.className = 'score-message good';
+        } else {
+            resultsMessage.textContent = 'Amazing streak! You\'re a quiz master! 🌟';
+            resultsMessage.className = 'score-message excellent';
+        }
+    }
+}
+
+function showError(message) {
+    const error = document.getElementById('error');
+    error.textContent = 'Error: ' + message;
+    error.style.display = 'block';
+}
+
+// Allow Enter key to submit answer in text mode
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('answerInput');
+    if (input) {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+    }
+});
+    </script>
+</body>
+</html>
