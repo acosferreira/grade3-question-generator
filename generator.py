@@ -12,12 +12,24 @@ class QuestionGenerator:
 
     def generate_math_question(self) -> Dict[str, str]:
         """Generate a grade 3 math question."""
-        prompt = """Generate ONE simple grade 3 math question. Include both the question and answer.
+        import random
+
+        # Add variety by suggesting different topics
+        topics = [
+            "addition or subtraction",
+            "multiplication (up to 10x10) or simple division",
+            "word problems about money or shopping",
+            "word problems about time or daily activities",
+            "word problems about counting objects or sharing items"
+        ]
+        selected_topic = random.choice(topics)
+
+        prompt = f"""Generate ONE unique grade 3 math question about {selected_topic}. Include both the question and answer.
 Format your response EXACTLY as:
 QUESTION: [the question]
 ANSWER: [the answer]
 
-Topics: addition, subtraction, multiplication (up to 10x10), division (simple), word problems, time, money.
+Make the question creative and different each time. Use different numbers, contexts, and scenarios.
 Keep it appropriate for 8-9 year olds."""
 
         response = self._call_llama(prompt)
@@ -25,25 +37,52 @@ Keep it appropriate for 8-9 year olds."""
 
     def generate_grammar_question(self) -> Dict[str, str]:
         """Generate a grade 3 English grammar question."""
-        prompt = """Generate ONE simple grade 3 English grammar question. Include both the question and answer.
+        import random
+
+        # Add variety by suggesting different topics
+        topics = [
+            "identifying parts of speech (nouns, verbs, adjectives, or adverbs)",
+            "punctuation and capitalization",
+            "plurals and irregular plurals",
+            "verb tenses (past, present, future)",
+            "sentence structure and simple/compound sentences"
+        ]
+        selected_topic = random.choice(topics)
+
+        prompt = f"""Generate ONE unique grade 3 English grammar question about {selected_topic}. Include both the question and answer.
 Format your response EXACTLY as:
 QUESTION: [the question]
 ANSWER: [the answer]
 
-Topics: parts of speech (nouns, verbs, adjectives), punctuation, capitalization, simple sentences, plurals, verb tenses.
+Make the question creative and different each time. Use different words, examples, and scenarios.
 Keep it appropriate for 8-9 year olds."""
 
         response = self._call_llama(prompt)
         return self._parse_response(response, "grammar")
 
     def generate_batch(self, subject: str, count: int = 5) -> List[Dict[str, str]]:
-        """Generate multiple questions at once."""
+        """Generate multiple questions at once, avoiding duplicates."""
         questions = []
-        for _ in range(count):
+        seen_questions = set()
+        max_attempts = count * 3  # Allow up to 3x attempts to get unique questions
+        attempts = 0
+
+        while len(questions) < count and attempts < max_attempts:
+            attempts += 1
+
             if subject == "math":
-                questions.append(self.generate_math_question())
+                q = self.generate_math_question()
             elif subject == "grammar":
-                questions.append(self.generate_grammar_question())
+                q = self.generate_grammar_question()
+            else:
+                continue
+
+            # Check if question is unique (case-insensitive)
+            question_key = q["question"].lower().strip()
+            if question_key not in seen_questions:
+                seen_questions.add(question_key)
+                questions.append(q)
+
         return questions
 
     def _call_llama(self, prompt: str) -> str:
@@ -65,7 +104,7 @@ Keep it appropriate for 8-9 year olds."""
                         "content": prompt
                     }
                 ],
-                "temperature": 0.7,
+                "temperature": 0.9,
                 "max_tokens": 200,
                 "stream": False
             }
