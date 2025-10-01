@@ -16,31 +16,78 @@ A Python CLI tool that generates grade 3 level math and English grammar question
 - (Optional) Ollama or llama-stack for LLM-generated questions
 - Without LLM: Uses built-in template-based question generation
 
-## Setup
+## Installation
 
-### 1. Install Python Dependencies
+### 1. Install Python (macOS)
+
+Using pyenv (recommended for managing Python versions):
 
 ```bash
+# Install Homebrew if you don't have it
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install pyenv
+brew install pyenv
+
+# Add pyenv to your shell configuration
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+
+# Restart your shell or run
+source ~/.zshrc
+
+# Install Python 3.8 or higher
+pyenv install 3.11.0
+pyenv global 3.11.0
+
+# Verify installation
+python --version
+```
+
+### 2. Install Dependencies
+
+```bash
+# Clone or navigate to the project directory
+cd grade3-question-generator
+
+# Install required Python packages
 pip install -r requirements.txt
 ```
 
-### 2. Choose Your LLM Backend (Optional)
+### 3. Choose Your LLM Backend (Optional)
 
 The tool works in three modes:
 
 #### **Option A: Ollama (Recommended - Easiest)**
 
-Best for local development, runs on CPU, easy setup:
+Best for local development, runs on CPU, easy setup.
+
+**Install on macOS:**
 
 ```bash
-# Install Ollama (Linux/macOS)
+# Option 1: Using Homebrew (recommended)
+brew install ollama
+
+# Option 2: Download from website
+# Visit https://ollama.com/download and download the macOS app
+# Or use the install script:
 curl -fsSL https://ollama.com/install.sh | sh
 
+# Start Ollama service
+ollama serve
+```
+
+**Note:** If you installed via the macOS app, Ollama will start automatically. Otherwise, run `ollama serve` in a terminal.
+
+**Download and run a model:**
+
+```bash
 # Pull a small model (1-3GB)
 ollama pull llama3.2:1b
 
-# Start Ollama (runs in background)
-ollama serve
+# Verify it's working
+ollama list
 ```
 
 Then use the tool with Ollama endpoint:
@@ -72,6 +119,21 @@ The tool includes built-in question templates and works immediately without any 
 ```bash
 # Just run it - fallback templates activate automatically
 python main.py generate math --count 5
+```
+
+## Quick Start
+
+After installing dependencies, you can start using the tool immediately:
+
+```bash
+# Generate 5 math questions (uses template mode by default)
+python main.py generate math --count 5
+
+# Practice with random questions
+python main.py practice --count 5
+
+# Start an interactive quiz
+python main.py quiz
 ```
 
 ## Usage
