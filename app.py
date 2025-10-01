@@ -40,9 +40,12 @@ def api_generate():
     data = request.json
     subject = data.get('subject', 'math')
     count = int(data.get('count', 5))
+    grade = int(data.get('grade', 3))
 
     try:
-        questions = generator.generate_batch(subject, count)
+        # Create generator with specified grade
+        grade_generator = QuestionGenerator(LLAMA_URL, grade=grade)
+        questions = grade_generator.generate_batch(subject, count)
 
         # Save to database
         saved_questions = []
@@ -138,6 +141,7 @@ def api_quiz_question():
     data = request.json
     subject = data.get('subject', None)
     multiple_choice = data.get('multiple_choice', False)
+    grade = int(data.get('grade', 3))
 
     if subject == 'all':
         subject = None
@@ -147,18 +151,21 @@ def api_quiz_question():
 
     if not questions:
         # Generate a new question if database is empty
+        # Create generator with specified grade
+        grade_generator = QuestionGenerator(LLAMA_URL, grade=grade)
+
         if subject:
             if subject == 'math':
-                q_data = generator.generate_math_question()
+                q_data = grade_generator.generate_math_question()
             else:
-                q_data = generator.generate_grammar_question()
+                q_data = grade_generator.generate_grammar_question()
         else:
             # Random subject
             subj = random.choice(["math", "grammar"])
             if subj == "math":
-                q_data = generator.generate_math_question()
+                q_data = grade_generator.generate_math_question()
             else:
-                q_data = generator.generate_grammar_question()
+                q_data = grade_generator.generate_grammar_question()
 
         # Save to database
         question_id = db.add_question(

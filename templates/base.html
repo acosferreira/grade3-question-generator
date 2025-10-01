@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Grade 3 Question Generator{% endblock %}</title>
+    <title>{% block title %}Question Generator{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <h1 class="nav-logo">📚 Grade 3 Quiz</h1>
+            <h1 class="nav-logo">📚 Question Generator</h1>
             <ul class="nav-menu">
                 <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
                 <li><a href="{{ url_for('generate_page') }}" class="nav-link">Generate</a></li>
@@ -26,7 +26,7 @@
     </main>
 
     <footer class="footer">
-        <p>&copy; 2024 Grade 3 Question Generator | Powered by LLM</p>
+        <p>&copy; 2024 Question Generator | Powered by LLM</p>
     </footer>
 
     {% block extra_js %}{% endblock %}

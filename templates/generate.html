@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Generate Questions - Grade 3 Quiz{% endblock %}
+{% block title %}Generate Questions - Question Generator{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -10,6 +10,18 @@
 
 <div class="generate-container">
     <form id="generateForm" class="form-card">
+        <div class="form-group">
+            <label for="grade">Grade Level:</label>
+            <select id="grade" name="grade" required>
+                <option value="1">Grade 1</option>
+                <option value="2">Grade 2</option>
+                <option value="3" selected>Grade 3</option>
+                <option value="4">Grade 4</option>
+                <option value="5">Grade 5</option>
+                <option value="6">Grade 6</option>
+            </select>
+        </div>
+
         <div class="form-group">
             <label for="subject">Subject:</label>
             <select id="subject" name="subject" required>
@@ -57,6 +69,7 @@ document.getElementById('generateForm').addEventListener('submit', async (e) => 
     const btnText = document.getElementById('btnText');
     const btnLoading = document.getElementById('btnLoading');
 
+    const grade = document.getElementById('grade').value;
     const subject = document.getElementById('subject').value;
     const count = document.getElementById('count').value;
 
@@ -72,7 +85,7 @@ document.getElementById('generateForm').addEventListener('submit', async (e) => 
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ subject, count })
+            body: JSON.stringify({ grade, subject, count })
         });
 
         const data = await response.json();

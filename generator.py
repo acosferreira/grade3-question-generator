@@ -4,52 +4,59 @@ from typing import Dict, List
 
 
 class QuestionGenerator:
-    """Generate grade 3 questions using LLM (Ollama/llama-stack)."""
+    """Generate questions for any grade level using LLM (Ollama/llama-stack)."""
 
-    def __init__(self, llama_stack_url: str = "http://localhost:11434"):
+    def __init__(self, llama_stack_url: str = "http://localhost:11434", grade: int = 3):
         self.llama_stack_url = llama_stack_url
         self.is_ollama = "11434" in llama_stack_url  # Detect Ollama by default port
+        self.grade = grade
 
     def generate_math_question(self) -> Dict[str, str]:
-        """Generate a grade 3 math question."""
+        """Generate a math question for the configured grade level."""
         import random
 
         # Add variety by suggesting different topics
         topics = [
             "addition or subtraction",
-            "multiplication (up to 10x10) or simple division",
-            "word problems about money or shopping",
-            "word problems about time or daily activities",
-            "word problems about counting objects or sharing items"
+            "multiplication",
+            "division",
+            "word problems about money",
+            "word problems about time",
+            "word daily activities",
+            "word problems about counting objects",
+            "fractions"
         ]
         selected_topic = random.choice(topics)
 
         # Add randomization to force variation in LLM output
         seed = random.randint(1000, 9999)
 
-        prompt = f"""Generate ONE unique grade 3 math question about {selected_topic}. Include both the question and answer.
+        prompt = f"""As teacher generate grade {self.grade} math question about {selected_topic}. Include both the question and answer.
 Format your response EXACTLY as:
 QUESTION: [the question]
 ANSWER: [the answer]
 
 IMPORTANT: Make this question completely different from previous questions. Use different numbers, contexts, and scenarios.
 Random seed for variation: {seed}
-Keep it appropriate for 8-9 year olds."""
+Keep it appropriate for grade {self.grade} students."""
 
         response = self._call_llama(prompt)
         return self._parse_response(response, "math")
 
     def generate_grammar_question(self) -> Dict[str, str]:
-        """Generate a grade 3 English grammar question."""
+        """Generate an English grammar question for the configured grade level."""
         import random
         import time
 
         # Add variety by suggesting different topics
         topics = [
-            "identifying parts of speech (nouns, verbs, adjectives, or adverbs)",
+            "identifying parts of speech nouns",
+            "identifying parts of speech verbs",
+            "identifying parts of speech adjectives"
+            "identifying parts of speech adverbs",
             "punctuation and capitalization",
             "plurals and irregular plurals",
-            "verb tenses (past, present, future)",
+            "verb tenses (past, present, future",
             "sentence structure and simple/compound sentences"
         ]
         selected_topic = random.choice(topics)
@@ -57,14 +64,14 @@ Keep it appropriate for 8-9 year olds."""
         # Add randomization to force variation in LLM output
         seed = random.randint(1000, 9999)
 
-        prompt = f"""Generate ONE unique grade 3 English grammar question about {selected_topic}. Include both the question and answer.
+        prompt = f"""As teacher generate grade {self.grade} English grammar question about {selected_topic}. Include both the question and answer.
 Format your response EXACTLY as:
 QUESTION: [the question]
 ANSWER: [the answer]
 
 IMPORTANT: Make this question completely different from previous questions. Use different words, examples, and scenarios.
 Random seed for variation: {seed}
-Keep it appropriate for 8-9 year olds."""
+Keep it appropriate for grade {self.grade} students."""
 
         response = self._call_llama(prompt)
         return self._parse_response(response, "grammar")
@@ -106,7 +113,7 @@ Keep it appropriate for 8-9 year olds."""
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a helpful elementary school teacher creating educational questions for grade 3 students."
+                        "content": f"You are a helpful elementary school teacher creating educational questions for grade {self.grade} students."
                     },
                     {
                         "role": "user",
